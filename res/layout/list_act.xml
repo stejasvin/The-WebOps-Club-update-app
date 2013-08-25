@@ -6,7 +6,7 @@
               android:layout_height="match_parent">
 
     <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center">
 
@@ -20,15 +20,19 @@
 
         <Button
                 style="?android:attr/buttonStyleSmall"
-                android:layout_width="fill_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="refresh"
                 android:id="@+id/update_b_refresh"
-                android:layout_gravity="right|center_vertical"/>
+                android:layout_gravity="right|center_vertical"
+                android:layout_weight="1"
+                android:paddingRight="50dp"
+                android:layout_marginRight="150dp"/>
     </LinearLayout>
 
     <ListView
             android:id="@android:id/list"
+
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"/>

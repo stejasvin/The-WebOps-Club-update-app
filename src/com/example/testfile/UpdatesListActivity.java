@@ -1,5 +1,6 @@
 package com.example.testfile;
 
+import android.animation.LayoutTransition;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.ListActivity;
@@ -8,9 +9,20 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.gesture.Gesture;
+import android.gesture.GestureLibraries;
+import android.gesture.GestureLibrary;
+import android.gesture.GestureOverlayView;
+import android.gesture.Prediction;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.DragEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -21,17 +33,22 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.TimerTask;
 
 /**
  * Created by Tejas on 8/24/13.
  */
-public class UpdatesListActivity extends ListActivity {
+public class UpdatesListActivity extends ListActivity implements GestureOverlayView.OnGesturePerformedListener{
 
     private static final String TAG = "UpdatesListActivity";
     public static final String REFRESH_ACTION = "REFRESH_UPDATES";
     private BroadcastReceiver refreshReceiver;
     ArrayAdapter<Update> adapter;
     ArrayList<Update> mapList;
+
+    private GestureLibrary gestureLib;
+
+    View selectedView = null;
 
     @Override
     protected void onStart() {
@@ -68,7 +85,22 @@ public class UpdatesListActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.list_act);
+//        setContentView(R.layout.list_act);
+
+        GestureOverlayView gestureOverlayView = new GestureOverlayView(this);
+        //GestureOverlayView gestureOverlayView = (GestureOverlayView)findViewById((R.id.gestureOverlayView));
+        View inflate;
+
+        inflate = getLayoutInflater().inflate(R.layout.list_act, null);
+        gestureOverlayView.setGestureColor(Color.TRANSPARENT);
+        gestureOverlayView.setGestureVisible(false);
+        gestureOverlayView.addView(inflate);
+        gestureOverlayView.addOnGesturePerformedListener(this);
+        gestureLib = GestureLibraries.fromRawResource(this, R.raw.gestures);
+        if (!gestureLib.load()) {
+            finish();
+        }
+        setContentView(gestureOverlayView);
 
         Intent iService = new Intent(this,UpdateDbService.class);
         startService(iService);
@@ -90,6 +122,8 @@ public class UpdatesListActivity extends ListActivity {
             }
         });
         ListView list = getListView();
+//        list.setSelector(R.drawable.list_selector);
+
         list.setScrollbarFadingEnabled(false);
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -103,7 +137,71 @@ public class UpdatesListActivity extends ListActivity {
             }
         });
 
+
+
+        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
+                        R.anim.jitter);
+//                final View view1 = view;
+                view.startAnimation(animFadein);
+//                Thread tSleep = new Thread(new TimerTask() {
+//                    @Override
+//                    public void run() {
+//                        SystemClock.sleep(1000);
+//                        view1.clearAnimation();
+//
+//                    }
+//                });
+
+                selectedView = view;
+                return true;
+            }
+        });
+
+
+//                new AdapterView.OnItemLongClickListener() {
+//            @Override
+//            public void onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+//                Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
+//                        R.anim.sequential2);
+//
+////        refresh.setAnimation(animFadein);
+//                view.startAnimation(animFadein);
+//            }
+//        });
+
+
+
+
     }
+
+    @Override
+    public void onGesturePerformed(GestureOverlayView overlay, Gesture gesture) {
+        ArrayList<Prediction> predictions = gestureLib.recognize(gesture);
+        for (Prediction prediction : predictions) {
+            if (prediction.score > 1.0) {
+                //makeToast("Listener");
+                //Toast.makeText(this, prediction.name, Toast.LENGTH_SHORT).show();
+
+                //Toast.makeText(this, prediction.name, Toast.LENGTH_SHORT).show();
+
+//                if(prediction.name.equalsIgnoreCase("left")){
+//
+//                }
+//                if(prediction.name.equalsIgnoreCase("right")){
+                    if(selectedView!=null){
+                        Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
+                                R.anim.sequential2);
+                        selectedView.startAnimation(animFadein);
+                        selectedView = null;
+                    }
+//                }
+            }
+        }
+    }
+
 
     private void setRecurringAlarm(Context context) {
         Calendar updateTime = Calendar.getInstance();
@@ -119,4 +217,6 @@ public class UpdatesListActivity extends ListActivity {
                 updateTime.getTimeInMillis(),
                 AlarmManager.INTERVAL_FIFTEEN_MINUTES, recurringDownload);
     }
+
+
 }
