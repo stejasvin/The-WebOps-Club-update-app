@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -83,8 +84,19 @@ public class UpdatesListActivity extends ListActivity {
                 startService(new Intent(UpdatesListActivity.this,UpdateDbService.class));
             }
         });
-//        ListView list = getListView();
-//        list.setScrollbarFadingEnabled(false);
+        ListView list = getListView();
+        list.setScrollbarFadingEnabled(false);
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Update update = mapList.get(position);
+                Intent intent = new Intent(UpdatesListActivity.this,DisplayUpdateActivity.class);
+                intent.putExtra("webops.LOCAL_ID",update.getLocalId());
+                startActivity(intent);
+
+            }
+        });
 
     }
 }

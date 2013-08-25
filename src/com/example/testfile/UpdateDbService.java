@@ -102,9 +102,8 @@ public class UpdateDbService extends IntentService {
             Log.i(TAG, resp);
             JSONArray jsonArray = new JSONArray(resp);
 
-            addMessages(jsonArray);
-
-            return true;
+            if(addMessages(jsonArray))
+                return true;
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -120,8 +119,9 @@ public class UpdateDbService extends IntentService {
         return false;
     }
 
-    private void addMessages(JSONArray jsonArray) {
+    private boolean addMessages(JSONArray jsonArray) {
 
+        boolean flag = false;
         UpdatesDbHandler updatesDbHandler = new UpdatesDbHandler(UpdateDbService.this);
         SharedPreferences preferences = getSharedPreferences("webops.SHARED_PREF", 0);
         SharedPreferences.Editor mEditor = preferences.edit();
@@ -137,11 +137,13 @@ public class UpdateDbService extends IntentService {
                 updatesDbHandler.addUpdate(update);
 
                 mEditor.putString("com.dhilcare.app.LAST_ID", update.getServerId()).commit();
+                flag = true;
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
+        return flag;
     }
 
     /**

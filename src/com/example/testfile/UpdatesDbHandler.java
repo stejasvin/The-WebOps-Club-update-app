@@ -42,7 +42,7 @@ public class UpdatesDbHandler extends SQLiteOpenHelper {
                 + KEY_SERVER_ID + " TEXT,"
                 + KEY_TITLE + " TEXT,"
                 + KEY_MESSAGE + " TEXT,"
-                + KEY_TIMESTAMP + " TEXT" +")";
+                + KEY_TIMESTAMP + " TEXT" + ")";
         db.execSQL(CREATE_UPDATES_TABLE);
     }
 
@@ -74,44 +74,46 @@ public class UpdatesDbHandler extends SQLiteOpenHelper {
         values.put(KEY_TIMESTAMP, update.getLocalTime());
 
         // Inserting Row
-        if(db.insert(TABLE_UPDATES, null, values)==-1)
+        if (db.insert(TABLE_UPDATES, null, values) == -1)
             Log.e(TAG, "error in inserting");
         db.close(); // Closing database connection
     }
 
-//    // Getting single annotation
-//    public Annotation getAnnotation(int l_ecg_id) {
-//        SQLiteDatabase db = this.getReadableDatabase();
-//
-//        Cursor cursor = db.query(TABLE_UPDATES, new String[] {
-//                KEY_LOCAL_ID,
-//                KEY_SERVER_ID,
-//                KEY_LOCAL_ECG_ID,
-//                KEY_NOTE,
-//                KEY_TIMESTAMP}, KEY_LOCAL_ECG_ID + "=?",
-//                new String[] { String.valueOf(l_ecg_id) }, null, null, null, null);
-//
-//        if (cursor != null)
-//            cursor.moveToFirst();
-//
-//        Annotation annotation = new Annotation();
-//        annotation.setLocalId(cursor.getString(0));
-//        annotation.setServerId(cursor.getString(1));
-//        annotation.setLocalEcgId(cursor.getString(2));
-//        annotation.setNote(cursor.getString(3));
-//        annotation.setLocalCreationDate(cursor.getString(4));
-//
-//        // return annotation
-//
-//        db.close();
-//        return annotation;
-//    }
+    // Getting single update
+    public Update getUpdate(int l_id) {
+        Update update = new Update();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.query(TABLE_UPDATES, new String[]{
+                KEY_LOCAL_ID,
+                KEY_SERVER_ID,
+                KEY_TITLE,
+                KEY_MESSAGE,
+                KEY_TIMESTAMP}, KEY_LOCAL_ID + "=?",
+                new String[]{String.valueOf(l_id)}, null, null, null, null);
+
+        if (cursor != null)
+            if (cursor.moveToFirst()) {
+
+                update.setLocalId(cursor.getInt(0));
+                update.setServerId(cursor.getString(1));
+                update.setTitle(cursor.getString(2));
+                update.setMessage(cursor.getString(3));
+                update.setLocalTime(cursor.getString(4));
+
+                db.close();
+                return update;
+            }
+        db.close();
+        return null;
+
+    }
 
     // Getting All Updates
     public ArrayList<Update> getAllUpdates() {
         ArrayList<Update> updateList = new ArrayList<Update>();
         // Select All Query
-        String selectQuery = "SELECT  * FROM " + TABLE_UPDATES +" ORDER BY "+KEY_LOCAL_ID+" DESC";
+        String selectQuery = "SELECT  * FROM " + TABLE_UPDATES + " ORDER BY " + KEY_LOCAL_ID + " DESC";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
