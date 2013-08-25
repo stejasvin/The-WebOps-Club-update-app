@@ -32,8 +32,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -177,7 +180,7 @@ public class UpdateDbService extends IntentService {
     public static String getCurrentTime() {
         Calendar c = Calendar.getInstance();
         String currentTime = (c.getTime()).toString();
-        return currentTime;
+        return processTimeFormat(currentTime);
     }
 
     public static void generateNotification(Context context, String message) {
@@ -212,4 +215,48 @@ public class UpdateDbService extends IntentService {
         notification.defaults |= Notification.DEFAULT_VIBRATE;
         notificationManager.notify(0, notification);
     }
+
+    public static String processTimeFormat(String input) {
+        if (input != null) {
+            SimpleDateFormat dateFormat = null;
+            Date date = null;
+
+            SimpleDateFormat dateFormatOutput = new SimpleDateFormat(
+                    "EEE MMM dd HH:mm");
+
+            try {
+
+//				dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+
+                date = dateFormat.parse(input);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                try {
+
+                    dateFormat = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+
+                    date = dateFormat.parse(input);
+                } catch (ParseException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+
+                }
+            }
+            if (date != null) {
+                Log.i("TIME-DATE", date.toString());
+
+                String output = dateFormatOutput.format(date);
+
+                Log.i("TIME-DATE", output);
+
+                // output = output.replace(":", "-");
+                return output;
+            }
+        }
+
+        return null;
+    }
+
 }
