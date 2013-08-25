@@ -84,6 +84,7 @@ public class UpdateDbService extends IntentService {
         // Building Parameters
 //        List<NameValuePair> params = new ArrayList<NameValuePair>();
 //        params.add(new BasicNameValuePair("id", lastServerId));
+        boolean flag = false;
         DefaultHttpClient sDefaultHttpClient = new DefaultHttpClient();
 
         try {
@@ -108,7 +109,7 @@ public class UpdateDbService extends IntentService {
             JSONArray jsonArray = new JSONArray(resp);
 
             if(addMessages(jsonArray))
-                return true;
+                flag = true;
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -121,7 +122,8 @@ public class UpdateDbService extends IntentService {
             // makeToastUI("Connection TimeOut");
         }
 //        Log.i(Utilities.CONTROL_TAG,"Update Bp and Hr: sucess = 0 exception");
-        return false;
+        sendBroadcast(new Intent(UpdatesListActivity.ROTATE_ACTION));
+        return flag;
     }
 
     private boolean addMessages(JSONArray jsonArray) {
@@ -137,7 +139,7 @@ public class UpdateDbService extends IntentService {
                 update.setServerId(jsonArray.getJSONObject(i).getString("id"));
                 update.setTitle(jsonArray.getJSONObject(i).getString("title"));
                 update.setMessage(jsonArray.getJSONObject(i).getString("message"));
-                update.setLocalTime(getCurrentTime());
+                update.setLocalTime(jsonArray.getJSONObject(i).getString("timestamp"));
 
                 updatesDbHandler.addUpdate(update);
 

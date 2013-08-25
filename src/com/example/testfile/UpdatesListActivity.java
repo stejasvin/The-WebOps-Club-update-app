@@ -26,6 +26,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -42,13 +43,18 @@ public class UpdatesListActivity extends ListActivity implements GestureOverlayV
 
     private static final String TAG = "UpdatesListActivity";
     public static final String REFRESH_ACTION = "REFRESH_UPDATES";
+    public static final String ROTATE_ACTION = "ROTATE_BUTTON";
     private BroadcastReceiver refreshReceiver;
     ArrayAdapter<Update> adapter;
     ArrayList<Update> mapList;
 
+    ListView list;
+
     private GestureLibrary gestureLib;
 
     View selectedView = null;
+    int selectedId = -1;
+    private BroadcastReceiver rotateReceiver;
 
     @Override
     protected void onStart() {
@@ -73,6 +79,17 @@ public class UpdatesListActivity extends ListActivity implements GestureOverlayV
             }
         };
         registerReceiver(refreshReceiver, new IntentFilter(REFRESH_ACTION));
+
+        rotateReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+//                Bundle extras = intent.getExtras();
+
+                Log.i(TAG, "rotateReceiver triggered");
+                findViewById(R.id.update_b_refresh).clearAnimation();
+
+            }
+        };
+        registerReceiver(rotateReceiver, new IntentFilter(ROTATE_ACTION));
     }
 
     @Override
@@ -102,9 +119,7 @@ public class UpdatesListActivity extends ListActivity implements GestureOverlayV
         }
         setContentView(gestureOverlayView);
 
-        Intent iService = new Intent(this,UpdateDbService.class);
-        startService(iService);
-        setRecurringAlarm(this);
+
 
         UpdatesDbHandler updatesDbHandler = new UpdatesDbHandler(UpdatesListActivity.this);
         mapList =  updatesDbHandler.getAllUpdates();
@@ -114,15 +129,31 @@ public class UpdatesListActivity extends ListActivity implements GestureOverlayV
                 R.layout.single_list_item_view_updates, mapList);
         setListAdapter(adapter);
 
-        Button refresh = (Button)findViewById(R.id.update_b_refresh);
+        final Button refresh = (Button)findViewById(R.id.update_b_refresh);
+
+        //refresh list
+        Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
+                R.anim.rotate);
+        refresh.startAnimation(animFadein);
+        Intent iService = new Intent(this,UpdateDbService.class);
+        startService(iService);
+        setRecurringAlarm(this);
+
+
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //refresh list
+                Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
+                        R.anim.rotate);
+                refresh.startAnimation(animFadein);
                 startService(new Intent(UpdatesListActivity.this,UpdateDbService.class));
             }
         });
-        ListView list = getListView();
+        list = getListView();
 //        list.setSelector(R.drawable.list_selector);
+
+
 
         list.setScrollbarFadingEnabled(false);
 
@@ -144,7 +175,6 @@ public class UpdatesListActivity extends ListActivity implements GestureOverlayV
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
                         R.anim.jitter);
-//                final View view1 = view;
                 view.startAnimation(animFadein);
 //                Thread tSleep = new Thread(new TimerTask() {
 //                    @Override
@@ -156,9 +186,11 @@ public class UpdatesListActivity extends ListActivity implements GestureOverlayV
 //                });
 
                 selectedView = view;
+                selectedId = mapList.get(position).getLocalId();
                 return true;
             }
         });
+
 
 
 //                new AdapterView.OnItemLongClickListener() {
@@ -191,15 +223,67 @@ public class UpdatesListActivity extends ListActivity implements GestureOverlayV
 //
 //                }
 //                if(prediction.name.equalsIgnoreCase("right")){
-                    if(selectedView!=null){
+                    if(selectedView!=null&&
+                            selectedId!=-1){
                         Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
                                 R.anim.sequential2);
+                        animFadein.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+                                Animation animFadein = AnimationUtils.loadAnimation(getApplicationContext(),
+                                        R.anim.sequential3);
+                                list.startAnimation(animFadein);
+
+                                UpdatesDbHandler updatesDbHandler = new UpdatesDbHandler(UpdatesListActivity.this);
+                                updatesDbHandler.deleteUpdate(selectedId+"");
+
+//                                try{
+//                                    list.removeViewInLayout(selectedView);
+//                                }catch (Exception e){
+//                                    e.printStackTrace();
+//                                }
+
+                                selectedView.setVisibility(View.VISIBLE);
+                                refreshList();
+
+                                selectedView = null;
+                                selectedId = -1;
+
+                                Animation anim2 = AnimationUtils.loadAnimation(getApplicationContext(),
+                                        R.anim.fade_in);
+                                list.startAnimation(anim2);
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+
+                            }
+                        });
                         selectedView.startAnimation(animFadein);
-                        selectedView = null;
+
                     }
 //                }
             }
         }
+    }
+
+    private void refreshList() {
+
+//        UpdatesDbHandler updatesDbHandler = new UpdatesDbHandler(UpdatesListActivity.this);
+//
+//        mapList = updatesDbHandler.getAllUpdates();
+////        list.removeAllViewsInLayout();
+//
+//        adapter.clear();
+//        for(Update u : mapList)
+//            adapter.add(u);
+        finish();
+        startActivity(getIntent());
     }
 
 

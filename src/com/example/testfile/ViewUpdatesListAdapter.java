@@ -49,6 +49,7 @@ public class ViewUpdatesListAdapter extends ArrayAdapter {
         TextView tvMessage = (TextView) row.findViewById(R.id.list_message);
         TextView tvTime = (TextView) row.findViewById(R.id.list_time);
         LinearLayout tvLayout = (LinearLayout) row.findViewById(R.id.list_layout);
+        tvLayout.setVisibility(View.VISIBLE);
 
 
 //        String sName = null;

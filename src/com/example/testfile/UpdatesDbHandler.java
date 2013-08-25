@@ -138,6 +138,12 @@ public class UpdatesDbHandler extends SQLiteOpenHelper {
         return updateList;
     }
 
+    public void deleteUpdate(String id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_UPDATES, KEY_LOCAL_ID + " = ?",
+                new String[]{id});
+        db.close();
+    }
 //    // Getting All Annotations
 //    public ArrayList<HashMap<String,String>> getAllAnnotationsArrayList(String ecgId) {
 //        ArrayList<HashMap<String,String>> annotationList = new ArrayList<HashMap<String,String>>();
