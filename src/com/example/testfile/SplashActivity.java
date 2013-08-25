@@ -73,6 +73,7 @@ public class SplashActivity extends Activity{
 //				Intent i = new Intent(activity,com.bluetooth.MainActivity.class);
             activity.startActivity(i);
             activity.finish();
+
 //			}
 
         }
