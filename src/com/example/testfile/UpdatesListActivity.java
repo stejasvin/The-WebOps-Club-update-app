@@ -1,7 +1,9 @@
 package com.example.testfile;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.ListActivity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,8 +17,10 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by Tejas on 8/24/13.
@@ -68,6 +72,7 @@ public class UpdatesListActivity extends ListActivity {
 
         Intent iService = new Intent(this,UpdateDbService.class);
         startService(iService);
+        setRecurringAlarm(this);
 
         UpdatesDbHandler updatesDbHandler = new UpdatesDbHandler(UpdatesListActivity.this);
         mapList =  updatesDbHandler.getAllUpdates();
@@ -98,5 +103,20 @@ public class UpdatesListActivity extends ListActivity {
             }
         });
 
+    }
+
+    private void setRecurringAlarm(Context context) {
+        Calendar updateTime = Calendar.getInstance();
+        updateTime.setTimeZone(TimeZone.getTimeZone("GMT"));
+        updateTime.set(Calendar.HOUR_OF_DAY, 11);
+        updateTime.set(Calendar.MINUTE, 45);
+        Intent downloader = new Intent(context, AlarmReceiver.class);
+        PendingIntent recurringDownload = PendingIntent.getBroadcast(context,
+                0, downloader, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager alarms = (AlarmManager) UpdatesListActivity.this.getSystemService(
+                Context.ALARM_SERVICE);
+        alarms.setInexactRepeating(AlarmManager.RTC_WAKEUP,
+                updateTime.getTimeInMillis(),
+                AlarmManager.INTERVAL_FIFTEEN_MINUTES, recurringDownload);
     }
 }

@@ -40,4 +40,6 @@ public class DisplayUpdateActivity extends Activity {
         message.setText(update.getMessage());
 
     }
+
+
 }
